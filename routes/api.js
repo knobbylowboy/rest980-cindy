@@ -164,4 +164,53 @@ function sendAndDisconnect (method, args, res, next) {
   });
 }
 
+// New endpoints for the controls page
+router.post('/command', function(req, res, next) {
+    const command = req.body.command;
+    if (!command) {
+        return res.status(400).json({ error: 'No command specified' });
+    }
+
+    let method;
+    switch(command) {
+        case 'start':
+            method = 'start';
+            break;
+        case 'stop':
+            method = 'stop';
+            break;
+        case 'dock':
+            method = 'dock';
+            break;
+        default:
+            return res.status(400).json({ error: 'Invalid command' });
+    }
+
+    if (enableLocal === 'yes') {
+        myRobot.local[method]().then(function(resp) {
+            res.json({ success: true, response: resp });
+        }).catch(next);
+    } else if (enableCloud === 'yes') {
+        myRobot.cloud[method]().then(function(resp) {
+            res.json({ success: true, response: resp });
+        }).catch(next);
+    } else {
+        next(new Error('Both local and cloud APIs are disabled'));
+    }
+});
+
+router.get('/status', function(req, res, next) {
+    if (enableLocal === 'yes') {
+        myRobot.local.getRobotState().then(function(state) {
+            res.json({ status: state.cleanMissionStatus.phase });
+        }).catch(next);
+    } else if (enableCloud === 'yes') {
+        myRobot.cloud.getStatus().then(function(status) {
+            res.json({ status: status.cleanMissionStatus.phase });
+        }).catch(next);
+    } else {
+        next(new Error('Both local and cloud APIs are disabled'));
+    }
+});
+
 module.exports = router;

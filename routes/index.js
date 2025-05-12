@@ -8,8 +8,7 @@ var helloResponse = {
 router.use(express.json());
 
 router.get('/', function (req, res) {
-  helloResponse.pong = new Date();
-  res.send(helloResponse);
+  res.render('controls');
 });
 
 router.get('/ping', function (req, res) {

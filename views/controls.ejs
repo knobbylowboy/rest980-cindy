@@ -1,0 +1,86 @@
+<%- include('header') %>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Roomba Controls</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Basic Controls</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" onclick="sendCommand('start')">Start Cleaning</button>
+                        <button class="btn btn-warning" onclick="sendCommand('stop')">Stop</button>
+                        <button class="btn btn-info" onclick="sendCommand('dock')">Return to Dock</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Status</h5>
+                </div>
+                <div class="card-body">
+                    <div id="status" class="alert alert-info">
+                        Loading status...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function sendCommand(command) {
+    fetch('/api/command', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command: command })
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateStatus(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        updateStatus({ error: 'Failed to send command' });
+    });
+}
+
+function updateStatus(data) {
+    const statusDiv = document.getElementById('status');
+    if (data.error) {
+        statusDiv.className = 'alert alert-danger';
+        statusDiv.textContent = data.error;
+    } else {
+        statusDiv.className = 'alert alert-success';
+        statusDiv.textContent = 'Command sent successfully';
+    }
+}
+
+// Poll for status updates
+function pollStatus() {
+    fetch('/api/status')
+        .then(response => response.json())
+        .then(data => {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = 'alert alert-info';
+            statusDiv.textContent = `Status: ${data.status || 'Unknown'}`;
+        })
+        .catch(error => {
+            console.error('Error polling status:', error);
+        });
+}
+
+// Poll every 5 seconds
+setInterval(pollStatus, 5000);
+pollStatus(); // Initial poll
+</script>
+
+<%- include('footer') %> 
