@@ -8,7 +8,7 @@ var helloResponse = {
 router.use(express.json());
 
 router.get('/', function (req, res) {
-  res.render('controls');
+  res.render('controls', { title: 'Roomba Controls' });
 });
 
 router.get('/ping', function (req, res) {
